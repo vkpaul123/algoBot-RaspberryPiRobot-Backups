@@ -1,16 +1,20 @@
 import RPi.GPIO as GPIO
 import time
 
+
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
-##GPIO.cleanup()
+
+
+
+print('hi')
 
 M11 = 16
 M12 = 12
 M21 = 21
 M22 = 20
 
-delay = 5
+delay = 6
 
 GPIO.setup(M11, GPIO.OUT)
 GPIO.setup(M12, GPIO.OUT)
