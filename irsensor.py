@@ -75,7 +75,7 @@ try:
     while(1):
         if(GPIO.input(irLeft)==1 and GPIO.input(irRight)==1):
             moveForward()
-        elif(GPIO.input(irLeft)==1 and GPIO.input(irRight)==1):
+        elif(GPIO.input(irLeft)==0 and GPIO.input(irRight)==1):
             rotateLeft()
         elif(GPIO.input(irLeft)==1 and GPIO.input(irRight)==0):
             rotateRight()
