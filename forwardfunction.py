@@ -3,13 +3,14 @@ import time
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BCM)
+GPIO.cleanup()
 
 M11 = 16
 M12 = 12
 M21 = 21
 M22 = 20
 
-delay = 8.47
+delay = 8.465
 
 GPIO.setup(M11, GPIO.OUT)
 GPIO.setup(M12, GPIO.OUT)
@@ -24,7 +25,7 @@ def moveForward():
     GPIO.output(M12, 1)
     GPIO.output(M21, 0)
     GPIO.output(M22, 1)
-    time.sleep(delay)
+##    time.sleep(delay)
     print('movin forward done!')
     return
 
@@ -34,7 +35,7 @@ def moveBackward():
     GPIO.output(M12, 0)
     GPIO.output(M21, 1)
     GPIO.output(M22, 0)
-    time.sleep(delay)
+##    time.sleep(delay)
     print('movin backward done!')
     return
 
@@ -44,7 +45,7 @@ def rotateRight():
     GPIO.output(M12, 0)
     GPIO.output(M21, 0)
     GPIO.output(M22, 1)
-    time.sleep(delay)
+##    time.sleep(delay)
     print('rotating right done!')
     return
 
@@ -54,20 +55,33 @@ def rotateLeft():
     GPIO.output(M12, 1)
     GPIO.output(M21, 1)
     GPIO.output(M22, 0)
-    time.sleep(delay)
+##    time.sleep(delay)
     print('rotating left done!')
     return
 
 print('start')
 
-moveForward()
-moveBackward()
-rotateLeft()
-moveForward()
-moveBackward()
-rotateRight()
-moveForward()
-moveBackward()
+##moveForward()
+##moveBackward()
+##rotateLeft()
+##moveForward()
+##moveBackward()
+##rotateRight()
+##moveForward()
+##moveBackward()
+
+while 1:
+    a = input('WASD ?')
+    if(a == 'w'):
+        moveForward()
+    elif(a == 'a'):
+        rotateLeft()
+    elif(a == 'd'):
+        rotateRight()
+    elif(a == 's'):
+        moveBackward()
+    else:
+        break
 
 GPIO.cleanup()
 print('All Done!')
