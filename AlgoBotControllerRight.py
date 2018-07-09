@@ -1,6 +1,6 @@
 import RPi.GPIO as GPIO
 
-class AlgoBotController:
+class AlgoBotControllerRight:
     stopCount = 0
     
     def __init__(self):
@@ -21,7 +21,7 @@ class AlgoBotController:
         self.M22 = 20
         
         # set stopCount to 0
-        AlgoBotController.stopCount = 0
+        AlgoBotControllerRight.stopCount = 0
         
         print('setup')
         GPIO.setup(self.irLeftFront, GPIO.IN)
@@ -89,14 +89,14 @@ class AlgoBotController:
                 elif(GPIO.input(self.irLeftFront)==0 and GPIO.input(self.irRightFront)==1):
                     self.rotateRight()
                 else:
-                    if(AlgoBotController.stopCount >= 100):
+                    if(AlgoBotControllerRight.stopCount >= 100):
                         self.stopMovement()
-                        AlgoBotController.stopCount = 0
+                        AlgoBotControllerRight.stopCount = 0
                         self.step_forward_correction()
                         break
                     else:
                         self.stopMovement()
-                        AlgoBotController.stopCount = AlgoBotController.stopCount + 1
+                        AlgoBotControllerRight.stopCount = AlgoBotControllerRight.stopCount + 1
         except:
             GPIO.cleanup()
         
@@ -123,8 +123,58 @@ class AlgoBotController:
         print('STEP:    F_correct (Forward Step CORRECTION) COMPLETE!')
         return
     
-bot = AlgoBotController()
+    # ==========================================
+    def step_right(self):
+        print('STEP: R (Right Step)...')
+        
+        try:
+            while(GPIO.input(self.irLeftSide)==0 or GPIO.input(self.irRightSide)==0):
+                self.rotateRight()
+            
+            while(GPIO.input(self.irLeftSide)==1 or GPIO.input(self.irRightSide)==1):
+                self.rotateRight()
+                
+            self.stopMovement()
+        except:
+            GPIO.cleanup()
+            
+        print('STEP: R (Right Step) COMPLETE!')
+        return
+    
+    # ==========================================
+    def step_left(self):
+        print('STEP: L (Left Step)...')
+        
+        try:
+            while(GPIO.input(self.irLeftSide)==0 or GPIO.input(self.irRightSide)==0):
+                self.rotateLeft()
+            
+            while(GPIO.input(self.irLeftSide)==1 or GPIO.input(self.irRightSide)==1):
+                self.rotateLeft()
+                
+            self.stopMovement()
+        except:
+            GPIO.cleanup()
+            
+        print('STEP: L (Left Step) COMPLETE!')
+        return
+    
+bot = AlgoBotControllerRight()
 try:
-    bot.step_forward()
+    while 1:
+        print('W = Forward, A = Left, D = Right, Anything Else to exit')
+        command = input('Enter Command... ')
+        
+        if(command == 'W'):
+            bot.step_forward()
+        elif(command == 'A'):
+            bot.step_left()
+        elif(command == 'D'):
+            bot.step_right
+        else:
+            print('DONE!')
+            break
+    
 except:
     GPIO.cleanup()
+
