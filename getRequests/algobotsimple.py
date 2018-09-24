@@ -3,9 +3,9 @@ import time
 import RPi.GPIO as GPIO
 
 class AlgoBotControllerFinalTest:
-	stopCount = 0
+	delay = 8.465
 
-    # orient ('orientation') can be 0:North; 1:East; 2:South; 3:West
+	# orient ('orientation') can be 0:North; 1:East; 2:South; 3:West
     orient = 0
     gridLimitX = 8
     gridLimitY = 8
@@ -18,12 +18,6 @@ class AlgoBotControllerFinalTest:
         GPIO.setwarnings(False)
         GPIO.cleanup()
 
-        # IR Sensors Pins
-        self.irLeftFront = 2
-        self.irRightFront = 3
-        self.irLeftSide = 27
-        self.irRightSide = 17
-
         # Motor Driver pins
         self.M11 = 16
         self.M12 = 12
@@ -33,16 +27,6 @@ class AlgoBotControllerFinalTest:
         # Ultrasonic sensor pins
         self.ultraEcho = 23
         self.ultraTrig = 24
-
-        # set stopCount to 0
-        AlgoBotControllerFinalTest.stopCount = 0
-
-        # setup
-        print('setup')
-        GPIO.setup(self.irLeftFront, GPIO.IN)
-        GPIO.setup(self.irRightFront, GPIO.IN)
-        GPIO.setup(self.irLeftSide, GPIO.IN)
-        GPIO.setup(self.irRightSide, GPIO.IN)
 
         GPIO.setup(self.M11, GPIO.OUT)
         GPIO.setup(self.M12, GPIO.OUT)
@@ -136,13 +120,12 @@ class AlgoBotControllerFinalTest:
 	    
 	    return distance
 
-
 	def obstacleDetected(self, xLoc, yLoc):
 		print('obstacle Detected at X=',xLoc, ' Y=',yLoc)
 		reqUpdateObstacle = req.get(self.socketAddr + '/robot/updateObstacle/', self.robotId, '/', xLoc, '/', yLoc, '/node')
 		return
 
-    def step_forward(self):
+	def step_forward(self):
     	print('looking for obstacle...')
     	if (self.calcDistance() <= 50):
     		if (AlgoBotControllerFinalTest.orient == 0):
@@ -207,24 +190,27 @@ class AlgoBotControllerFinalTest:
 
     def step_move_forward(self):
         print('STEP: F (Forward Step)...')
-        print(GPIO.input(self.irLeftFront), ' ', GPIO.input(self.irRightFront))
+        # print(GPIO.input(self.irLeftFront), ' ', GPIO.input(self.irRightFront))
         try:
-        	while 1:
-                if(GPIO.input(self.irLeftFront)==1 and GPIO.input(self.irRightFront)==1):
-                    self.moveForward()
-                elif(GPIO.input(self.irLeftFront)==1 and GPIO.input(self.irRightFront)==0):
-                    self.rotateLeft()
-                elif(GPIO.input(self.irLeftFront)==0 and GPIO.input(self.irRightFront)==1):
-                    self.rotateRight()
-                else:
-                    if(AlgoBotControllerFinalTest.stopCount >= 200):
-                        self.stopMovement()
-                        AlgoBotControllerFinalTest.stopCount = 0
-                        self.step_forward_correction()
-                        break
-                    else:
-                        self.stopMovement()
-                        AlgoBotControllerFinalTest.stopCount = AlgoBotControllerFinalTest.stopCount + 1
+        	# while 1:
+         #        if(GPIO.input(self.irLeftFront)==1 and GPIO.input(self.irRightFront)==1):
+         #            self.moveForward()
+         #        elif(GPIO.input(self.irLeftFront)==1 and GPIO.input(self.irRightFront)==0):
+         #            self.rotateLeft()
+         #        elif(GPIO.input(self.irLeftFront)==0 and GPIO.input(self.irRightFront)==1):
+         #            self.rotateRight()
+         #        else:
+         #            if(AlgoBotControllerFinalTest.stopCount >= 200):
+         #                self.stopMovement()
+         #                AlgoBotControllerFinalTest.stopCount = 0
+         #                self.step_forward_correction()
+         #                break
+         #            else:
+         #                self.stopMovement()
+         #                AlgoBotControllerFinalTest.stopCount = AlgoBotControllerFinalTest.stopCount + 1
+        	self.moveForward()
+        	time.sleep(AlgoBotControllerFinalTest.delay)
+        	self.stopMovement()
 
         except:
             GPIO.cleanup()
@@ -234,36 +220,18 @@ class AlgoBotControllerFinalTest:
     		print('Move Updated')
         return
 
-    def step_forward_correction(self):
-        print('STEP:    F_correct (Forward Step CORRECTION)...')
-        try:
-            while (GPIO.input(self.irLeftSide)==1 or GPIO.input(self.irRightSide)==1):
-                if(GPIO.input(self.irLeftFront)==1 and GPIO.input(self.irRightFront)==1):
-                    self.moveForward()
-                elif(GPIO.input(self.irLeftFront)==1 and GPIO.input(self.irRightFront)==0):
-                    self.rotateLeft()
-                elif(GPIO.input(self.irLeftFront)==0 and GPIO.input(self.irRightFront)==1):
-                    self.rotateRight()
-                else:
-                    self.moveForward()
-
-            self.stopMovement()
-        except:
-            GPIO.cleanup()
-
-        print('STEP:    F_correct (Forward Step CORRECTION) COMPLETE!')
-        return
-
     # ==========================================
     def step_right(self):
         print('STEP: R (Right Step)...')
 
         try:
-            while(GPIO.input(self.irLeftSide)==0 or GPIO.input(self.irRightSide)==0):
-                self.rotateRight()
+            # while(GPIO.input(self.irLeftSide)==0 or GPIO.input(self.irRightSide)==0):
+            #     self.rotateRight()
 
-            while(GPIO.input(self.irLeftSide)==1 or GPIO.input(self.irRightSide)==1):
-                self.rotateRight()
+            # while(GPIO.input(self.irLeftSide)==1 or GPIO.input(self.irRightSide)==1):
+            #     self.rotateRight()
+            self.rotateRight()
+            time.sleep(AlgoBotControllerFinalTest.delay)
 
             self.stopMovement()
         except:
@@ -284,11 +252,13 @@ class AlgoBotControllerFinalTest:
         print('STEP: L (Left Step)...')
 
         try:
-            while(GPIO.input(self.irLeftSide)==0 or GPIO.input(self.irRightSide)==0):
-                self.rotateLeft()
+            # while(GPIO.input(self.irLeftSide)==0 or GPIO.input(self.irRightSide)==0):
+            #     self.rotateLeft()
 
-            while(GPIO.input(self.irLeftSide)==1 or GPIO.input(self.irRightSide)==1):
-                self.rotateLeft()
+            # while(GPIO.input(self.irLeftSide)==1 or GPIO.input(self.irRightSide)==1):
+            #     self.rotateLeft()
+            self.rotateLeft()
+            time.sleep(AlgoBotControllerFinalTest.delay)
 
             self.stopMovement()
         except:
@@ -305,7 +275,7 @@ class AlgoBotControllerFinalTest:
         return
 
 # -------------------------------------------------------------------------------------------------------
-print('Algobot IR')
+print('Algobot Simple')
 ipAddr = input('Enter IP address of Server... ')
 port = input('Enter port... ')
 socketAddr = 'http://' + ipAddr + ':' + port
