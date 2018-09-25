@@ -1,9 +1,12 @@
 import requests as req
 import time
+import sys
 import RPi.GPIO as GPIO
 
 class AlgoBotControllerFinalTest:
 	delay = 8.465
+
+	obstacleDetectedVar = False
 
 	# orient ('orientation') can be 0:North; 1:East; 2:South; 3:West
     orient = 0
@@ -123,6 +126,7 @@ class AlgoBotControllerFinalTest:
 	def obstacleDetected(self, xLoc, yLoc):
 		print('obstacle Detected at X=',xLoc, ' Y=',yLoc)
 		reqUpdateObstacle = req.get(self.socketAddr + '/robot/updateObstacle/', self.robotId, '/', xLoc, '/', yLoc, '/node')
+		AlgoBotControllerFinalTest..obstacleDetectedVar = True
 		return
 
 	def step_forward(self):
@@ -280,6 +284,8 @@ ipAddr = input('Enter IP address of Server... ')
 port = input('Enter port... ')
 socketAddr = 'http://' + ipAddr + ':' + port
 
+
+
 try:
 	reqCheckConn = req.get(socketAddr + '/testConnection')
 	repCheckConn = reqCheckConn.text
@@ -289,9 +295,17 @@ try:
 		robotId = input('Enter Robot ID... ')
 		# sizeX = int(input('Enter Size of Grid (X-Axis)... '))
 		# sizeY = int(input('Enter Size of Grid (Y-Axis)... '))
-		locX = int(input('Enter the X-Location of Robot... '))
-		locY = int(input('Enter the Y-Location of Robot... '))
-		orientation = int(input('Enter the orientation of Robot.\nOrientation can be 0:North; 1:East; 2:South; 3:West ... '))
+		# locX = int(input('Enter the X-Location of Robot... '))
+		# locY = int(input('Enter the Y-Location of Robot... '))
+		# orientation = int(input('Enter the orientation of Robot.\nOrientation can be 0:North; 1:East; 2:South; 3:West ... '))
+
+		reqInitData = req.get(socketAddr + '/initRobotData/' + robotId + '/get')
+		resInitData = reqInitData.text
+		initDataList = list(resInitData)
+
+		locX = initDataList[0]
+		locY = initDataList[2]
+		orientation = initDataList[4]
 
 		bot = AlgoBotControllerFinalTest()
 		# bot.setupInitValues(sizeX, sizeY, locX, locY, orientation)
@@ -301,44 +315,84 @@ try:
 		reqPathSet = req.get(socketAddr + '/getPath/' + robotId + '/get')
 		resPathStream = reqPathSet.text
 
-		if(resPathStream != ''):
-			pathStreamList = list(resPathStream)
-			#try:
+		while 1:
+			if(resPathStream != '-1'):
+				print('Path = ', resPathStream)
+				pathStreamList = list(resPathStream)
+				#try:
 
-			for moveCommand in pathStreamList:
-				if(command == 'F'):
-			        print(command, ' F')
-			        bot.step_forward()
-			    elif(command == 'L'):
-			        print(command,' L')
-			        bot.step_left()
-			    elif(command == 'R'):
-			        print(command, 'R')
-			        bot.step_right()
-			    else:
-			        print('DONE!')
-			        break
+				for moveCommand in pathStreamList:
+					if (AlgoBotControllerFinalTest.obstacleDetectedVar == True):
+						del pathStreamList[:]
+						
+						reqAllowMove = req.get(socketAddr + '/robot/getAllowMovement/' + robotId)
+						resAllowMove = reqAllowMove.text
+						while (resAllowMove != 1):
+							if(resAllowMove == 0):
+								print('User Aborted! Exiting...')
+								sys.exit(0)
+							print('Waiting for User to REROUTE...')
+							time.sleep(5)
+							reqAllowMove = req.get(socketAddr + '/robot/getAllowMovement/' + robotId)
+							resAllowMove = reqAllowMove.text
 
-			# while 1:
-			#     print('W = Forward, A = Left, D = Right, Anything Else to exit')
-			#     command = input('Enter Command... ')
+						reqPathSet = req.get(socketAddr + '/getLatestPath/' + robotId + '/get')
+						resPathStream = reqPathSet.text
+						print('New Path = ', resPathStream)
+						pathStreamList = list(resPathStream)
+						AlgoBotControllerFinalTest.obstacleDetectedVar == False
 
-			#     if(command == 'W' or command == 'w'):
-			#         print(command, ' W')
-			#         bot.step_forward()
-			#     elif(command == 'A' or command == 'a'):
-			#         print(command,' A')
-			#         bot.step_left()
-			#     elif(command == 'D' or command == 'd'):
-			#         print(command, 'D')
-			#         bot.step_right()
-			#     else:
-			#         print('DONE!')
-			#         break
-			#except:
-			#    print('Error Occoured Somewhere')
-			#    GPIO.cleanup()
-			#finally:
-			GPIO.cleanup()
+					reqAllowMove = req.get(socketAddr + '/robot/getAllowMovement/' + robotId)
+					resAllowMove = reqAllowMove.text
+					while (resAllowMove != 1):
+						if(resAllowMove == 0):
+							print('User Aborted! Exiting...')
+							sys.exit(0)
+						print('Waiting for User to START...')
+						time.sleep(5)
+						reqAllowMove = req.get(socketAddr + '/robot/getAllowMovement/' + robotId)
+						resAllowMove = reqAllowMove.text
+
+					print('START!')
+					if(command == 'F'):
+				        print(command, ' F')
+				        bot.step_forward()
+				    elif(command == 'L'):
+				        print(command,' L')
+				        bot.step_left()
+				    elif(command == 'R'):
+				        print(command, 'R')
+				        bot.step_right()
+				    else:
+				        print('DONE!')
+				        break
+
+				# while 1:
+				#     print('W = Forward, A = Left, D = Right, Anything Else to exit')
+				#     command = input('Enter Command... ')
+
+				#     if(command == 'W' or command == 'w'):
+				#         print(command, ' W')
+				#         bot.step_forward()
+				#     elif(command == 'A' or command == 'a'):
+				#         print(command,' A')
+				#         bot.step_left()
+				#     elif(command == 'D' or command == 'd'):
+				#         print(command, 'D')
+				#         bot.step_right()
+				#     else:
+				#         print('DONE!')
+				#         break
+				#except:
+				#    print('Error Occoured Somewhere')
+				#    GPIO.cleanup()
+				#finally:
+				# GPIO.cleanup()
+			else:
+				print('Waiting for Path...')
+				time.sleep(5)
+				reqPathSet = req.get(socketAddr + '/getPath/' + robotId + '/get')
+				resPathStream = reqPathSet.text
 except:
 	print('Connection Failed. Host unreachable. Please check if the server is running')
+	GPIO.cleanup()
